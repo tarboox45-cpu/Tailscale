@@ -1,42 +1,112 @@
 {
-    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
-    "meta": {
-        "version": "PTDL_v2",
-        "update_url": null
+  "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2025-05-09T15:57:59+02:00",
+  "name": "Tailscale VPN (Safe Defaults)",
+  "author": "joshuajosephherbert@gmail.com",
+  "description": "Runs a Tailscale VPN connection inside the container using userspace networking. Uses safe defaults (no tags/SSH by default) to avoid common ACL and container key issues. Clones install/start scripts from your GitHub repo.",
+  "features": null,
+  "docker_images": {
+    "ghcr.io/parkervcp/yolks:debian": "ghcr.io/parkervcp/yolks:debian"
+  },
+  "file_denylist": [],
+  "startup": "./start.sh",
+  "config": {
+    "files": "{}",
+    "startup": "{\n    \"done\": \"Tailscale connected.\"\n}",
+    "logs": "{\n    \"log\": \"/home/container/logs.txt\",\n    \"format\": \"text\",\n    \"type\": \"raw\"\n}",
+    "stop": "^c"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/bash\r\nset -e\r\n\r\n# Update package lists and upgrade installed packages\r\napt update && apt upgrade -y\r\n\r\n# Install required packages\r\napt install -y git ca-certificates curl\r\n\r\ncd /mnt/server\r\n\r\n# Pull scripts from GitHub into the container's server directory\r\ngit clone https://github.com/tarboox45-cpu/Tailscale.git .\r\n\r\n# Make all shell scripts executable\r\nchmod +x ./*.sh\r\n\r\necho \"✅ Tailscale scripts are ready.\"",
+      "container": "debian:bullseye",
+      "entrypoint": "bash"
+    }
+  },
+  "variables": [
+    {
+      "name": "Tailscale Auth Key",
+      "description": "Authentication key from your Tailscale admin panel. MUST be an Auth Key that starts with tskey-auth- (not an API key).",
+      "env_variable": "TAILSCALE_AUTH_KEY",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "required|string|max:200",
+      "field_type": "text"
     },
-    "exported_at": "2025-05-09T15:57:59+02:00",
-    "name": "Tailscale VPN",
-    "author": "joshuajosephherbert@gmail.com",
-    "description": "Runs a Tailscale VPN connection inside the container. This pulls install\/start scripts from a public GitHub repo and joins the server to a Tailscale network using your auth key.",
-    "features": null,
-    "docker_images": {
-        "ghcr.io\/parkervcp\/yolks:debian": "ghcr.io\/parkervcp\/yolks:debian"
+    {
+      "name": "Tailscale Hostname",
+      "description": "Device name that will appear in your Tailnet.",
+      "env_variable": "TAILSCALE_HOSTNAME",
+      "default_value": "ptero-ts",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:64",
+      "field_type": "text"
     },
-    "file_denylist": [],
-    "startup": ".\/start.sh",
-    "config": {
-        "files": "{}",
-        "startup": "{\r\n    \"done\": \"Logged in\"\r\n}",
-        "logs": "{\r\n    \"log\": \"\/home\/container\/logs.txt\",\r\n    \"format\": \"text\",\r\n    \"type\": \"raw\"\r\n}",
-        "stop": "^c"
+    {
+      "name": "Enable Tailscale SSH",
+      "description": "Enable Tailscale SSH on this node. Recommended: false in containers unless you manage SSH host keys properly.",
+      "env_variable": "TAILSCALE_ENABLE_SSH",
+      "default_value": "false",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|in:true,false",
+      "field_type": "text"
     },
-    "scripts": {
-        "installation": {
-            "script": "#!\/bin\/bash\r\n\r\n# Update package lists and upgrade installed packages\r\napt update && apt upgrade -y\r\n\r\n# Install git if it's not installed\r\napt install -y git\r\n\r\ncd \/mnt\/server\r\n\r\n# Clone scripts from GitHub into the container's server directory\r\ngit clone https:\/\/github.com\/tarboox45-cpu\/Tailscale.git .\r\n\r\n# Make all shell scripts executable\r\nchmod +x .\/*.sh\r\n\r\necho \"\u2705 Tailscale scripts are ready.\"",
-            "container": "debian:bullseye",
-            "entrypoint": "bash"
-        }
+    {
+      "name": "Advertise Exit Node",
+      "description": "Advertise this node as an exit node (requires approval in Tailscale Admin for the device).",
+      "env_variable": "TAILSCALE_EXIT_NODE",
+      "default_value": "false",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|in:true,false",
+      "field_type": "text"
     },
-    "variables": [
-        {
-            "name": "Tailscale Auth Key",
-            "description": "Authentication key from your Tailscale admin panel. This is used to connect the server to your Tailnet.",
-            "env_variable": "TAILSCALE_AUTH_KEY",
-            "default_value": "",
-            "user_viewable": true,
-            "user_editable": true,
-            "rules": "nullable|string|max:200",
-            "field_type": "text"
-        }
-    ]
+    {
+      "name": "Advertise Tags",
+      "description": "Optional tags (example: tag:container). Leave EMPTY to avoid ACL tagOwners errors.",
+      "env_variable": "TAILSCALE_ADVERTISE_TAGS",
+      "default_value": "",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:200",
+      "field_type": "text"
+    },
+    {
+      "name": "SOCKS5 Server Address",
+      "description": "SOCKS5 proxy address exposed by tailscaled in userspace mode.",
+      "env_variable": "TAILSCALE_SOCKS5_ADDR",
+      "default_value": "127.0.0.1:1055",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:64",
+      "field_type": "text"
+    },
+    {
+      "name": "Tailscale Version",
+      "description": "Tailscale static version to download (leave default unless needed).",
+      "env_variable": "TS_VERSION",
+      "default_value": "1.82.5",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:32",
+      "field_type": "text"
+    },
+    {
+      "name": "Working Directory",
+      "description": "Working directory inside the container (normally /home/container).",
+      "env_variable": "WORKDIR",
+      "default_value": "/home/container",
+      "user_viewable": true,
+      "user_editable": true,
+      "rules": "nullable|string|max:128",
+      "field_type": "text"
+    }
+  ]
 }
