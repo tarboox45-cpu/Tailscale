@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Clone scripts from GitHub into the container's server directory
+git clone https://github.com/tarboox45-cpu/Tailscale.git .
+
+# Make all shell scripts executable
+chmod +x ./*.sh
+
+echo "✅ Tailscale scripts are ready."
